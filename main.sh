@@ -1,5 +1,5 @@
 #!/bin/bash
-apt install wget git bash sudo docker.io -y
+apt install wget git curl bash sudo docker.io -y
 
 # Auto-tune file descriptor limits system-wide
 
