@@ -1,7 +1,7 @@
 #!/bin/bash
 apt update
 apt upgrade -y
-apt install docker.io
+apt install docker.io -y
 
 # Auto-tune file descriptor limits system-wide
 
