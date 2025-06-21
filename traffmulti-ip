@@ -125,7 +125,7 @@ for IP in $IP_LIST; do
         --network "$NETWORK_NAME" \
         --name "$CONTAINER_NAME" \
         --restart unless-stopped \
-        "$TRAFF_IMAGE" start accept --token "$TRAFFKEY"; then
+        "$TRAFF_IMAGE" start accept --device-name "$IP" --token "$TRAFFKEY"; then
         echo "[ERROR] Gagal menjalankan container $CONTAINER_NAME."
         cleanup_resources "$CONTAINER_NAME"
     fi
