@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# ===== Konfigurasi =====
+TRAFFKEY="BXTLNxacGrJgUfYygVVY0WNbrjNnfxtYh3hayfruMx0="
+NAME_PREFIX="tm"
+ARCH="latest" # Ganti ke "arm64v8" atau "arm32v7" jika menggunakan ARM
+IMAGE_BASE="traffmonetizer/cli_v2"
+TRAFF_IMAGE="${IMAGE_BASE}:${ARCH}"
+
+SUBNET_BASE="172.28"
+LOGFILE="/var/log/traff-init.log"
+
+# ===== Logging =====
+mkdir -p /var/log
+exec > >(tee -a "$LOGFILE") 2>&1
+echo "========== $(date) =========="
+
+# ===== Validasi Akses Root =====
+if [ "$(id -u)" -ne 0 ]; then
+    echo "[ERROR] Skrip ini harus dijalankan sebagai root atau dengan sudo."
+    exit 1
+fi
+
+# ===== Fungsi Instalasi Docker (untuk Debian/Ubuntu) =====
+install_docker_if_needed() {
+    if ! command -v docker &> /dev/null; then
+        echo "[INFO] Docker belum terinstal. Memulai instalasi..."
+        apt update -y && \
+        apt install -y ca-certificates curl gnupg lsb-release apt-transport-https
+
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/$(. /etc/os-release && echo "$ID")/gpg | \
+            gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        chmod a+r /etc/apt/keyrings/docker.gpg
+
+        echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") \
+        $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        apt update -y && \
+        apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+        echo "[INFO] Docker berhasil diinstal."
+    else
+        echo "[INFO] Docker sudah terinstal."
+    fi
+}
+
+# ===== Validasi Kunci =====
+if [ "$TRAFFKEY" == "GANTI_DENGAN_KEY_ANDA" ]; then
+    echo "[ERROR] Harap ganti nilai TRAFFKEY dengan kunci Anda yang valid."
+    exit 1
+fi
+
+# ===== Install Docker jika diperlukan =====
+install_docker_if_needed
+
+# ===== Validasi dependensi lainnya =====
+for cmd in ip iptables; do
+  if ! command -v "$cmd" &> /dev/null; then
+    echo "[ERROR] Perintah '$cmd' tidak ditemukan. Instal secara manual dan jalankan ulang skrip."
+    exit 1
+  fi
+done
+
+# ===== Ambil Daftar IP Eksternal =====
+IP_LIST=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v -E '127\.|172\.1[6-9]\.|172\.2[0-9]\.|172\.3[0-1]\.|192\.168\.|10\.')
+
+if [ -z "$IP_LIST" ]; then
+    echo "[PERINGATAN] Tidak ada IP eksternal yang ditemukan. Keluar."
+    exit 1
+fi
+
+echo "[INFO] IP eksternal ditemukan:"
+echo "$IP_LIST"
+echo "-------------------------------------"
+
+# ===== Tarik Docker Image =====
+echo "[INFO] Menarik image Docker $TRAFF_IMAGE..."
+if ! docker pull "$TRAFF_IMAGE" > /dev/null; then
+    echo "[ERROR] Gagal menarik image $TRAFF_IMAGE."
+    exit 1
+fi
+
+# ===== Fungsi Pembersihan =====
+cleanup_resources() {
+    local container_name=$1
+    echo "[INFO] Membersihkan: $container_name..."
+    docker rm -f "$container_name" &> /dev/null
+    while iptables-save | grep -q -- "-m comment --comment $container_name"; do
+        local rule=$(iptables-save | grep -- "-m comment --comment $container_name" | sed 's/^-A/-D/')
+        iptables -t nat $rule
+    done
+    docker network rm "${container_name}-net" &> /dev/null
+}
+
+# ===== Jalankan Per IP =====
+i=1
+for IP in $IP_LIST; do
+    CONTAINER_NAME="${NAME_PREFIX}-${i}"
+    NETWORK_NAME="${CONTAINER_NAME}-net"
+    SUBNET="${SUBNET_BASE}.${i}.0/24"
+
+    echo "=========================================================="
+    echo "[PROSES] IP: $IP  |  Container: $CONTAINER_NAME"
+    echo "=========================================================="
+
+    cleanup_resources "$CONTAINER_NAME"
+
+    echo "[1/3] Membuat jaringan Docker $NETWORK_NAME ($SUBNET)..."
+    if ! docker network create "$NETWORK_NAME" --driver bridge --subnet "$SUBNET"; then
+        echo "[ERROR] Gagal membuat network. Lanjut ke IP berikutnya."
+        continue
+    fi
+
+    echo "[2/3] Menambahkan iptables SNAT rule untuk $IP..."
+    if ! iptables -t nat -I POSTROUTING -s "$SUBNET" -j SNAT --to-source "$IP" -m comment --comment "$CONTAINER_NAME"; then
+        echo "[ERROR] Gagal menambahkan aturan iptables. Hapus network & lanjut."
+        docker network rm "$NETWORK_NAME"
+        continue
+    fi
+
+    echo "[3/3] Menjalankan container $CONTAINER_NAME..."
+    if ! docker run -d \
+        --network "$NETWORK_NAME" \
+        --name "$CONTAINER_NAME" \
+        --restart unless-stopped \
+        "$TRAFF_IMAGE" start accept --token "$TRAFFKEY"; then
+        echo "[ERROR] Gagal menjalankan container $CONTAINER_NAME."
+        cleanup_resources "$CONTAINER_NAME"
+    fi
+
+    ((i++))
+done
