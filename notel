@@ -7,8 +7,8 @@ SQUID_CONF="/etc/squid/squid.conf"
 PASS_FILE="/etc/squid/passwd"
 START_PORT=3001
 
-# === Pastikan curl terinstal ===
-apt update && apt install -y curl
+# === Instalasi dependensi lainnya ===
+sudo apt update && sudo apt install -y wget curl bash squid apache2-utils ufw
 
 # === Ambil IP publik utama ===
 MAIN_IP=$(curl -s ifconfig.me)
@@ -30,9 +30,6 @@ fi
 
 # === Bersihkan hasil sebelumnya ===
 > $LOG_FILE
-
-# === Instalasi dependensi lainnya ===
-apt install -y squid apache2-utils ufw
 
 # === Setup autentikasi ===
 htpasswd -cb $PASS_FILE $USER $PASS
@@ -69,6 +66,13 @@ cat > /etc/systemd/system/squid.service.d/override.conf <<EOF
 [Service]
 LimitNOFILE=65535
 EOF
+
+#=== tambahan swap file 1GB ===
+sudo fallocate -l 1G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
 # === Restart dan aktifkan Squid ===
 systemctl daemon-reexec
