@@ -4,7 +4,7 @@
 USER="vodkaace"
 PASS="indonesia"
 INTERFACE="eth0"
-CIDR="/26"
+CIDR="/24"
 START_PORT=3001
 PASS_FILE="/etc/squid/passwd"
 SQUID_CONF="/etc/squid/squid.conf"
