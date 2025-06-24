@@ -1,8 +1,4 @@
 #!/bin/bash
-apt update
-apt upgrade -y
-apt install docker.io -y
-
 # Auto-tune file descriptor limits system-wide
 
 set -e
@@ -62,7 +58,5 @@ echo "📋 Verifikasi setelah perubahan:"
 ulimit -n
 systemctl show --property=DefaultLimitNOFILE
 cat /proc/1/limits | grep "Max open files"
-
-git clone https://github.com/engageub/InternetIncome.git
 echo
 echo "🎉 Selesai. Disarankan untuk reboot agar semua efek diterapkan penuh."
