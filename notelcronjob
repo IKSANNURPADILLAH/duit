@@ -8,7 +8,9 @@ PASS_FILE="/etc/squid/passwd"
 START_PORT=3001
 
 # === Instalasi dependensi ===
-apt update && apt install -y wget curl bash sudo squid apache2-utils ufw
+apt update && apt install -y wget curl bash sudo squid apache2-utils ufw cron
+sudo systemctl enable cron
+sudo systemctl start cron
 
 # === Ambil IP publik utama ===
 MAIN_IP=$(curl -s ifconfig.me)
