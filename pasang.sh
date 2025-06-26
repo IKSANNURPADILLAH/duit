@@ -14,3 +14,5 @@ else
   (crontab -l 2>/dev/null | grep -v "$IPSETUP_URL"; echo "*/5 * * * * $CRON_CMD") | crontab -
   echo "✅ Cron job berhasil dipasang dan akan menjalankan IP setup setiap 5 menit."
 fi
+echo "restart squid..."
+sudo systemctl restart squid
