@@ -1,8 +1,8 @@
 #!/bin/bash
-sudo apt update
-sudo apt install -y cron
-sudo systemctl enable cron
-sudo systemctl start cron
+apt update
+apt install -y cron
+systemctl enable cron
+systemctl start cron
 echo
 read -p "🔧 Masukkan URL script IP setup dari provider (misal: https://noez.de/api/ipsetup/...): " IPSETUP_URL
 
