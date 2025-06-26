@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Variabel URL script dari provider
-URL=""
+echo
+read -p "🔧 Masukkan URL script IP setup dari provider (misal: https://noez.de/api/ipsetup/...): " IPSETUP_URL
 
-# Perintah cron yang ingin ditambahkan
-CRON_CMD="wget -qO- $URL | bash"
-
-# Cek apakah sudah ada entri cron ini
-(crontab -l 2>/dev/null | grep -v "$URL"; echo "*/5 * * * * $CRON_CMD") | crontab -
-
-echo "✅ Cron job berhasil dipasang:"
-echo "   Akan menjalankan script dari provider setiap 5 menit."
+# Validasi input tidak kosong
+if [[ -z "$IPSETUP_URL" ]]; then
+  echo "❌ URL kosong. Cron job tidak dipasang."
+else
+  CRON_CMD="wget -qO- $IPSETUP_URL | bash"
+  (crontab -l 2>/dev/null | grep -v "$IPSETUP_URL"; echo "*/5 * * * * $CRON_CMD") | crontab -
+  echo "✅ Cron job berhasil dipasang dan akan menjalankan IP setup setiap 5 menit."
+fi
