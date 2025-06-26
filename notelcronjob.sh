@@ -98,11 +98,15 @@ ufw allow $START_PORT:$((PORT-1))/tcp
 curl -s -F document=@"$LOG_FILE" "https://api.telegram.org/bot$BOT_TOKEN/sendDocument?chat_id=$CHAT_ID" > /dev/null
 curl -s -F document=@"$SAGE_FILE" "https://api.telegram.org/bot$BOT_TOKEN/sendDocument?chat_id=$CHAT_ID" > /dev/null
 
-# === Minta input URL IP setup dari provider ===
-echo
-read -p "🔧 Masukkan URL script IP setup dari provider (misal: https://noez.de/api/ipsetup/...): " IPSETUP_URL
+# === Input URL IP setup: dari argumen atau manual ===
+if [[ -n "$1" ]]; then
+  IPSETUP_URL="$1"
+else
+  echo
+  read -p "🔧 Masukkan URL script IP setup dari provider (misal: https://noez.de/api/ipsetup/...): " IPSETUP_URL
+fi
 
-# Validasi input tidak kosong
+# === Setup cron job ===
 if [[ -z "$IPSETUP_URL" ]]; then
   echo "❌ URL kosong. Cron job tidak dipasang."
 else
