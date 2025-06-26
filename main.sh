@@ -13,42 +13,43 @@ echo "🔧 Setting hard and soft nofile limits to $TARGET_LIMIT"
 
 # 1. limits.conf
 if ! grep -q "nofile" "$LIMITS_CONF"; then
-  echo -e "* soft nofile $TARGET_LIMIT\n* hard nofile $TARGET_LIMIT" | sudo tee -a "$LIMITS_CONF"
+  echo -e "* soft nofile $TARGET_LIMIT\n* hard nofile $TARGET_LIMIT" | tee -a "$LIMITS_CONF"
 else
-  sudo sed -i "s/^\* soft nofile.*/\* soft nofile $TARGET_LIMIT/" "$LIMITS_CONF"
-  sudo sed -i "s/^\* hard nofile.*/\* hard nofile $TARGET_LIMIT/" "$LIMITS_CONF"
+  sed -i "s/^\* soft nofile.*/\* soft nofile $TARGET_LIMIT/" "$LIMITS_CONF"
+  sed -i "s/^\* hard nofile.*/\* hard nofile $TARGET_LIMIT/" "$LIMITS_CONF"
 fi
 
 # 2. PAM limits activation
 for PAM_FILE in /etc/pam.d/common-session /etc/pam.d/common-session-noninteractive; do
   if ! grep -q "pam_limits.so" "$PAM_FILE"; then
-    echo "session required pam_limits.so" | sudo tee -a "$PAM_FILE"
+    echo "session required pam_limits.so" | tee -a "$PAM_FILE"
   fi
 done
 
 # 3. system.conf (global systemd)
-sudo sed -i "s/^#DefaultLimitNOFILE=.*/DefaultLimitNOFILE=$TARGET_LIMIT/" "$SYSTEMD_CONF" 2>/dev/null || true
+sed -i "s/^#DefaultLimitNOFILE=.*/DefaultLimitNOFILE=$TARGET_LIMIT/" "$SYSTEMD_CONF" 2>/dev/null || true
 if ! grep -q "^DefaultLimitNOFILE=" "$SYSTEMD_CONF"; then
-  echo "DefaultLimitNOFILE=$TARGET_LIMIT" | sudo tee -a "$SYSTEMD_CONF"
+  echo "DefaultLimitNOFILE=$TARGET_LIMIT" | tee -a "$SYSTEMD_CONF"
 fi
 
 # 4. user.conf (systemd --user)
-sudo sed -i "s/^#DefaultLimitNOFILE=.*/DefaultLimitNOFILE=$TARGET_LIMIT/" "$USERD_CONF" 2>/dev/null || true
+sed -i "s/^#DefaultLimitNOFILE=.*/DefaultLimitNOFILE=$TARGET_LIMIT/" "$USERD_CONF" 2>/dev/null || true
 if ! grep -q "^DefaultLimitNOFILE=" "$USERD_CONF"; then
-  echo "DefaultLimitNOFILE=$TARGET_LIMIT" | sudo tee -a "$USERD_CONF"
+  echo "DefaultLimitNOFILE=$TARGET_LIMIT" | tee -a "$USERD_CONF"
 fi
 
 # 5. sysctl file-max
 if grep -q "^fs.file-max" "$SYSCTL_FILE"; then
-  sudo sed -i "s/^fs\.file-max.*/fs.file-max = $TARGET_LIMIT/" "$SYSCTL_FILE"
+  sed -i "s/^fs\.file-max.*/fs.file-max = $TARGET_LIMIT/" "$SYSCTL_FILE"
 else
-  echo "fs.file-max = $TARGET_LIMIT" | sudo tee -a "$SYSCTL_FILE"
+  echo "fs.file-max = $TARGET_LIMIT" | tee -a "$SYSCTL_FILE"
 fi
-sudo sysctl -p
+
+sysctl -p
 
 # 6. Reload systemd
-sudo systemctl daemon-reexec
-sudo systemctl daemon-reload
+systemctl daemon-reexec
+systemctl daemon-reload
 
 echo "✅ Semua limit telah di-set ke $TARGET_LIMIT"
 echo
