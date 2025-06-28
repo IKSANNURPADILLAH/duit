@@ -1,0 +1,197 @@
+#!/bin/bash
+
+prepare_ip() {
+	# Detect Linux distribution
+	distribution=$(cat /etc/os-release | grep '^ID=' | cut -d= -f2 | tr -d '"')
+
+	# Check distribution and prepare configuration accordingly
+	case "$distribution" in
+		debian|ubuntu)
+			echo "#!/bin/sh" > /etc/rc.local
+			echo "# IP Addresses" >> /etc/rc.local
+			chmod +x /etc/rc.local
+			;;
+		centos)
+			echo "#!/bin/sh" > /etc/rc.d/rc.local
+			echo "# IP Addresses" >> /etc/rc.d/rc.local
+			echo "ip link set eth0 up" >> /etc/rc.d/rc.local
+			chmod +x /etc/rc.d/rc.local
+			;;
+		*)
+			echo "Unsupported distribution."
+			exit 1
+			;;
+	esac
+}
+
+add_ipv4() {
+	ip=$1
+
+	case "$distribution" in
+		debian|ubuntu)
+			echo "ip addr add $ip dev eth0 > /dev/null 2>&1" >> /etc/rc.local
+			;;
+		centos)
+			echo "ip addr add $ip dev eth0 > /dev/null 2>&1" >> /etc/rc.d/rc.local
+			;;
+		*)
+			echo "Unsupported distribution."
+			exit 1
+			;;
+	esac
+}
+
+add_ipv6() {
+	ip=$1
+
+	# Detect Linux distribution
+	distribution=$(cat /etc/os-release | grep '^ID=' | cut -d= -f2 | tr -d '"')
+
+	# Check if IPv6 route commands already added based on distribution
+	case "$distribution" in
+		debian|ubuntu)
+			ipv6_gateway=$(printf "%s\n" $ip | cut -d: -f-3)"::1"
+			echo "ip addr add $ip dev eth0 > /dev/null 2>&1" >> /etc/rc.local
+			if ! grep -q 'ip -6 route add' /etc/rc.local; then
+				echo "ip -6 route add $ipv6_gateway dev eth0 > /dev/null 2>&1" >> /etc/rc.local
+			fi
+			if ! grep -q 'ip -6 route add default' /etc/rc.local; then
+				echo "ip -6 route add default via $ipv6_gateway dev eth0 onlink > /dev/null 2>&1" >> /etc/rc.local
+			fi
+			;;
+		centos)
+			ipv6_gateway=$(printf "%s\n" $ip | cut -d: -f-3)"::1"
+			echo "ip addr add $ip dev eth0 > /dev/null 2>&1" >> /etc/rc.d/rc.local
+			if ! grep -q 'ip -6 route add' /etc/rc.d/rc.local; then
+				echo "ip -6 route add $ipv6_gateway dev eth0 > /dev/null 2>&1" >> /etc/rc.d/rc.local
+			fi
+			if ! grep -q 'ip -6 route add default' /etc/rc.d/rc.local; then
+				echo "ip -6 route add default via $ipv6_gateway dev eth0 onlink > /dev/null 2>&1" >> /etc/rc.d/rc.local
+			fi
+			;;
+		*)
+			echo "Unsupported distribution."
+			exit 1
+			;;
+	esac
+}
+
+end_ip() {
+	# Detect Linux distribution
+	distribution=$(cat /etc/os-release | grep '^ID=' | cut -d= -f2 | tr -d '"')
+
+	# Check distribution and end configuration accordingly
+	case "$distribution" in
+		debian|ubuntu)
+			echo "exit 0" >> /etc/rc.local
+			;;
+		centos)
+			echo "exit 0" >> /etc/rc.d/rc.local
+			;;
+		*)
+			echo "Unsupported distribution."
+			exit 1
+			;;
+	esac
+}
+
+prepare_ip
+
+add_ipv4 5.175.131.75
+add_ipv4 5.175.131.76
+add_ipv4 5.175.131.77
+add_ipv4 5.175.131.78
+add_ipv4 5.175.131.79
+add_ipv4 5.175.131.80
+add_ipv4 5.175.131.81
+add_ipv4 5.175.131.82
+add_ipv4 5.175.131.83
+add_ipv4 5.175.131.84
+add_ipv4 5.175.131.85
+add_ipv4 5.175.131.86
+add_ipv4 5.175.131.87
+add_ipv4 5.175.131.88
+add_ipv4 5.175.131.89
+add_ipv4 5.175.131.90
+add_ipv4 5.175.131.91
+add_ipv4 5.175.131.92
+add_ipv4 5.175.131.93
+add_ipv4 5.175.131.94
+add_ipv4 5.175.131.95
+add_ipv4 5.175.131.96
+add_ipv4 5.175.131.97
+add_ipv4 5.175.131.98
+add_ipv4 5.175.131.99
+add_ipv4 5.175.131.100
+add_ipv4 5.175.131.101
+add_ipv4 5.175.131.102
+add_ipv4 5.175.131.103
+add_ipv4 5.175.131.104
+add_ipv4 5.175.131.105
+add_ipv4 5.175.131.106
+add_ipv4 5.175.131.107
+add_ipv4 5.230.102.70
+add_ipv4 5.230.102.71
+add_ipv4 5.230.102.72
+add_ipv4 5.230.102.73
+add_ipv4 5.230.102.74
+add_ipv4 5.230.102.75
+add_ipv4 5.230.102.76
+add_ipv4 5.230.102.77
+add_ipv4 5.230.102.78
+add_ipv4 5.230.102.79
+add_ipv4 5.230.102.80
+add_ipv4 5.230.102.81
+add_ipv4 5.230.102.82
+add_ipv4 5.230.102.83
+add_ipv4 5.230.102.84
+add_ipv4 5.230.102.85
+add_ipv4 5.230.102.90
+add_ipv4 5.231.206.17
+add_ipv4 5.231.206.18
+add_ipv4 5.231.206.19
+add_ipv4 5.231.206.20
+add_ipv4 5.231.206.21
+add_ipv4 5.231.206.22
+add_ipv4 5.231.206.23
+add_ipv4 5.231.206.24
+add_ipv4 5.231.206.25
+add_ipv4 5.231.251.75
+add_ipv4 5.231.251.76
+add_ipv4 5.231.251.77
+add_ipv4 5.231.251.78
+add_ipv4 5.231.251.79
+add_ipv4 5.231.251.80
+add_ipv4 5.231.251.81
+add_ipv4 5.231.251.82
+add_ipv4 5.231.251.83
+add_ipv4 5.231.251.84
+add_ipv4 5.231.251.85
+add_ipv4 5.231.251.86
+add_ipv4 5.231.251.87
+add_ipv4 5.231.251.88
+add_ipv4 5.231.251.89
+add_ipv4 5.231.251.90
+add_ipv4 5.231.251.91
+add_ipv4 5.231.251.92
+add_ipv4 5.231.251.93
+add_ipv4 5.231.251.94
+add_ipv4 5.231.251.95
+add_ipv4 5.231.251.96
+add_ipv4 5.231.251.97
+add_ipv4 5.231.251.98
+add_ipv4 5.231.251.99
+add_ipv4 5.231.251.101
+add_ipv4 5.231.251.103
+add_ipv4 5.231.251.105
+add_ipv4 5.231.251.106
+add_ipv4 5.231.251.107
+add_ipv4 77.90.34.47
+add_ipv4 77.90.34.48
+add_ipv4 77.90.34.49
+
+end_ip
+
+/etc/rc.d/rc.local > /dev/null 2>&1
+
+/etc/rc.local > /dev/null 2>&1
