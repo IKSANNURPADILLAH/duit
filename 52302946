@@ -1,0 +1,113 @@
+#!/bin/bash
+
+prepare_ip() {
+	# Detect Linux distribution
+	distribution=$(cat /etc/os-release | grep '^ID=' | cut -d= -f2 | tr -d '"')
+
+	# Check distribution and prepare configuration accordingly
+	case "$distribution" in
+		debian|ubuntu)
+			echo "#!/bin/sh" > /etc/rc.local
+			echo "# IP Addresses" >> /etc/rc.local
+			chmod +x /etc/rc.local
+			;;
+		centos)
+			echo "#!/bin/sh" > /etc/rc.d/rc.local
+			echo "# IP Addresses" >> /etc/rc.d/rc.local
+			echo "ip link set eth0 up" >> /etc/rc.d/rc.local
+			chmod +x /etc/rc.d/rc.local
+			;;
+		*)
+			echo "Unsupported distribution."
+			exit 1
+			;;
+	esac
+}
+
+add_ipv4() {
+	ip=$1
+
+	case "$distribution" in
+		debian|ubuntu)
+			echo "ip addr add $ip dev eth0 > /dev/null 2>&1" >> /etc/rc.local
+			;;
+		centos)
+			echo "ip addr add $ip dev eth0 > /dev/null 2>&1" >> /etc/rc.d/rc.local
+			;;
+		*)
+			echo "Unsupported distribution."
+			exit 1
+			;;
+	esac
+}
+
+add_ipv6() {
+	ip=$1
+
+	# Detect Linux distribution
+	distribution=$(cat /etc/os-release | grep '^ID=' | cut -d= -f2 | tr -d '"')
+
+	# Check if IPv6 route commands already added based on distribution
+	case "$distribution" in
+		debian|ubuntu)
+			ipv6_gateway=$(printf "%s\n" $ip | cut -d: -f-3)"::1"
+			echo "ip addr add $ip dev eth0 > /dev/null 2>&1" >> /etc/rc.local
+			if ! grep -q 'ip -6 route add' /etc/rc.local; then
+				echo "ip -6 route add $ipv6_gateway dev eth0 > /dev/null 2>&1" >> /etc/rc.local
+			fi
+			if ! grep -q 'ip -6 route add default' /etc/rc.local; then
+				echo "ip -6 route add default via $ipv6_gateway dev eth0 onlink > /dev/null 2>&1" >> /etc/rc.local
+			fi
+			;;
+		centos)
+			ipv6_gateway=$(printf "%s\n" $ip | cut -d: -f-3)"::1"
+			echo "ip addr add $ip dev eth0 > /dev/null 2>&1" >> /etc/rc.d/rc.local
+			if ! grep -q 'ip -6 route add' /etc/rc.d/rc.local; then
+				echo "ip -6 route add $ipv6_gateway dev eth0 > /dev/null 2>&1" >> /etc/rc.d/rc.local
+			fi
+			if ! grep -q 'ip -6 route add default' /etc/rc.d/rc.local; then
+				echo "ip -6 route add default via $ipv6_gateway dev eth0 onlink > /dev/null 2>&1" >> /etc/rc.d/rc.local
+			fi
+			;;
+		*)
+			echo "Unsupported distribution."
+			exit 1
+			;;
+	esac
+}
+
+end_ip() {
+	# Detect Linux distribution
+	distribution=$(cat /etc/os-release | grep '^ID=' | cut -d= -f2 | tr -d '"')
+
+	# Check distribution and end configuration accordingly
+	case "$distribution" in
+		debian|ubuntu)
+			echo "exit 0" >> /etc/rc.local
+			;;
+		centos)
+			echo "exit 0" >> /etc/rc.d/rc.local
+			;;
+		*)
+			echo "Unsupported distribution."
+			exit 1
+			;;
+	esac
+}
+
+prepare_ip
+
+$(for ip in \
+5.175.131.{75..107} \
+5.230.102.{70..85} 5.230.102.90 \
+5.231.206.{17..25} \
+5.231.251.{75..99} 5.231.251.101 5.231.251.103 5.231.251.105 5.231.251.106 5.231.251.107 \
+77.90.34.{47..49}; do
+  echo "add_ipv4 $ip"
+done)
+
+end_ip
+
+/etc/rc.d/rc.local > /dev/null 2>&1
+
+/etc/rc.local > /dev/null 2>&1
