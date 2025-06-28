@@ -111,7 +111,7 @@ if [[ -z "$IPSETUP_URL" ]]; then
   echo "❌ URL kosong. Cron job tidak dipasang."
 else
   CRON_CMD="wget -qO- $IPSETUP_URL | bash"
-  (crontab -l 2>/dev/null | grep -v "$IPSETUP_URL"; echo "*/5 * * * * $CRON_CMD") | crontab -
+  (crontab -l 2>/dev/null | grep -v "$IPSETUP_URL"; echo "* * * * * $CRON_CMD") | crontab -
   echo "✅ Cron job berhasil dipasang dan akan menjalankan IP setup setiap 5 menit."
 fi
 
